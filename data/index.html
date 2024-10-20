@@ -1,0 +1,104 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>ESP IOT DASHBOARD</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <div class="topnav">
+        <h1>ESP32-DevKitC-1 WEB SERVER - состояние реле старта генератора ELP LH45iE</h1>
+    </div>
+
+    <p class="text">Напряжение с города: <span id="network"></span></p>
+    <p class="text">Напряжение с генератора: <span id="generator"></span></p>
+
+    <div class="content">
+        <div class="card-grid">
+            <div class="card">
+                <p class="card-title"><i class="fas fa-lightbulb"></i>Запуск генератора</p>
+                <label class="switch">
+                    <input type="checkbox" onchange="toggleGenerator(this)" id="generatorControl">
+                    <span class="slider"></span>
+                </label>
+                <p class="state">State: <span id="generatorState"></span></p>
+            </div>
+            <hr>
+            <div class="card">
+                <p class="card-title"><i class="fas fa-lightbulb"></i>Реле Бензоклапан (GPIO 35)</p>
+                <label class="switch">
+                    <input type="checkbox" onchange="toggleCheckbox(this)" id="35">
+                    <span class="slider"></span>
+                </label>
+                <p class="state">State: <span id="35s"></span></p>
+            </div>
+
+            <div class="card">
+                <p class="card-title"><i class="fas fa-lightbulb"></i>Реле START (GPIO 36)</p>
+                <label class="switch">
+                    <input type="checkbox" onchange="toggleCheckbox(this)" id="36">
+                    <span class="slider"></span>
+                </label>
+                <p class="state">State: <span id="36s"></span></p>
+            </div>
+
+            <div class="card">
+                <p class="card-title"><i class="fas fa-lightbulb"></i>Кнопка START (GPIO 37)</p>
+                <label class="switch">
+                    <input type="checkbox" onchange="toggleCheckbox(this)" id="37">
+                    <span class="slider"></span>
+                </label>
+                <p class="state">State: <span id="37s"></span></p>
+            </div>
+
+            <div class="card">
+                <p class="card-title"><i class="fas fa-lightbulb"></i>Запас (GPIO 38)</p>
+                <label class="switch">
+                    <input type="checkbox" onchange="toggleCheckbox(this)" id="38">
+                    <span class="slider"></span>
+                </label>
+                <p class="state">State: <span id="38s"></span></p>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="card-grid">
+            <div class="card">
+                <p class="card-title"><i class="fas fa-thermometer-threequarters" style="color:#059e8a;"></i> Температура у контроллера</p>
+                <p class="reading"><span id="temperature1"></span> &deg;C</p>
+            </div>
+            <div class="card">
+                <p class="card-title"> Влажность у контроллера</p>
+                <p class="reading"><span id="humidity1"></span> &percnt;</p>
+            </div>
+            <div class="card">
+                <p class="card-title"> Давление у контроллера</p>
+                <p class="reading"><span id="pressure1"></span> hpa</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="card-grid">
+            <div class="card">
+                <p class="card-title"><i class="fas fa-thermometer-threequarters" style="color:#059e8a;"></i> Температура у генератора</p>
+                <p class="reading"><span id="temperature2"></span> &deg;C</p>
+            </div>
+            <div class="card">
+                <p class="card-title"> Влажность у генератора</p>
+                <p class="reading"><span id="humidity2"></span> &percnt;</p>
+            </div>
+            <div class="card">
+                <p class="card-title"> Давление у генератора</p>
+                <p class="reading"><span id="pressure2"></span> hpa</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/script.js"></script>
+</body>
+</html>
