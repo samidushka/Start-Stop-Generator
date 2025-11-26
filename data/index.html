@@ -1,104 +1,178 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>ESP IOT DASHBOARD</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" charset="utf-8">
+    <title>ESP32 IOT DASHBOARD</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="style.css">
-    <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="icon" type="image/png" href="/icons/favicon.png">
+    <link rel="stylesheet" href="/icons/css/all.min.css" />
+    <!--script src="https://cdn.jsdelivr.net/npm/chart.js"></script-->
 </head>
 <body>
     <div class="topnav">
         <h1>ESP32-DevKitC-1 WEB SERVER - состояние реле старта генератора ELP LH45iE</h1>
+        <div id="datetime" class="datetime-box"></div>
     </div>
 
-    <p class="text">Напряжение с города: <span id="network"></span></p>
-    <p class="text">Напряжение с генератора: <span id="generator"></span></p>
-
     <div class="content">
-        <div class="card-grid">
-            <div class="card">
-                <p class="card-title"><i class="fas fa-lightbulb"></i>Запуск генератора</p>
+        <!-- Блок с показаниями напряжения -->
+        <div class="voltage-container">
+            <!-- Карточка напряжения сети -->
+            <div class="voltage-card normal" id="networkVoltageCard">
+                <i class="fas fa-bolt voltage-icon"></i>
+                <p>Напряжение сети</p>
+                <span id="networkVoltage" class="voltage-value">-- V</span>
+            </div>
+            
+            <!-- Карточка генератора -->
+            <div class="voltage-card generator-card" id="generatorVoltageCard">
+                <span class="generator-icon">
+                    <i class="fas fa-industry voltage-icon"></i>
+                    <span class="generator-smoke" style="animation-delay: 0s; display: none;">~</span>
+                    <span class="generator-smoke" style="animation-delay: 0.5s; display: none;">~</span>
+                    <span class="generator-smoke" style="animation-delay: 1s; display: none;">~</span>
+                </span>
+                <p>Напряжение генератора</p>
+                <span id="generatorVoltage" class="voltage-value">0 V</span>
+            </div>
+        </div>
+
+        <!-- Датчики контроллера и генератора -->
+        <div class="sensor-container">
+            <!--h2><i class="fas fa-microchip"></i> 
+                <span id="values-mode" class="display-mode-link active-mode">Показания</span>
+                <span class="display-mode-separator"> / </span>
+                <span id="chart-mode" class="display-mode-link">Графики</span> датчиков
+            </h2-->
+            
+            <div class="sensor-group">
+                <h3>Контроллер</h3>
+                <div class="sensor-cards">
+                    <div class="sensor-card">
+                        <i class="fas fa-thermometer-half sensor-icon"></i>
+                        <p>Температура</p>
+                        <div class="value-container">
+                            <span id="temperature1" class="sensor-value">-- °C</span>
+                            <!--canvas id="temp1-chart" class="sensor-chart" style="display:none;"></canvas-->
+                        </div>
+                    </div>
+                    <div class="sensor-card">
+                        <i class="fas fa-tint sensor-icon"></i>
+                        <p>Влажность</p>
+                        <div class="value-container">
+                            <span id="humidity1" class="sensor-value">-- %</span>
+                            <!--canvas id="hum1-chart" class="sensor-chart" style="display:none;"></canvas-->
+                        </div>
+                    </div>
+                    <div class="sensor-card">
+                        <i class="fas fa-tachometer-alt sensor-icon"></i>
+                        <p>Давление</p>
+                        <div class="value-container">
+                            <span id="pressure1" class="sensor-value">-- hPa</span>
+                            <!--canvas id="press1-chart" class="sensor-chart" style="display:none;"></canvas-->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sensor-group">
+                <h3>Генератор</h3>
+                <div class="sensor-cards">
+                    <div class="sensor-card">
+                        <i class="fas fa-thermometer-half sensor-icon"></i>
+                        <p>Температура</p>
+                        <div class="value-container">
+                            <span id="temperature2" class="sensor-value">-- °C</span>
+                            <!--canvas id="temp2-chart" class="sensor-chart" style="display:none;"></canvas-->
+                        </div>
+                    </div>
+                    <div class="sensor-card">
+                        <i class="fas fa-tint sensor-icon"></i>
+                        <p>Влажность</p>
+                        <div class="value-container">
+                            <span id="humidity2" class="sensor-value">-- %</span>
+                            <!--canvas id="hum2-chart" class="sensor-chart" style="display:none;"></canvas-->
+                        </div>
+                    </div>
+                    <div class="sensor-card">
+                        <i class="fas fa-tachometer-alt sensor-icon"></i>
+                        <p>Давление</p>
+                        <div class="value-container">
+                            <span id="pressure2" class="sensor-value">-- hPa</span>
+                            <!--canvas id="press2-chart" class="sensor-chart" style="display:none;"></canvas-->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Блок управления -->
+        <div class="control-container">
+            <h2><i class="fas fa-power-off control-icon"></i> Управление</h2>
+            
+            <div class="control-card">
+                <p class="control-title"><i class="fas fa-power-off"></i> Генератор</p>
+                <div class="control-state">
+                    <span>Состояние:</span>
+                    <span id="generatorState" class="state-value">--</span>
+                </div>
                 <label class="switch">
                     <input type="checkbox" onchange="toggleGenerator(this)" id="generatorControl">
                     <span class="slider"></span>
                 </label>
-                <p class="state">State: <span id="generatorState"></span></p>
-            </div>
-            <hr>
-            <div class="card">
-                <p class="card-title"><i class="fas fa-lightbulb"></i>Реле Бензоклапан (GPIO 35)</p>
-                <label class="switch">
-                    <input type="checkbox" onchange="toggleCheckbox(this)" id="35">
-                    <span class="slider"></span>
-                </label>
-                <p class="state">State: <span id="35s"></span></p>
             </div>
 
-            <div class="card">
-                <p class="card-title"><i class="fas fa-lightbulb"></i>Реле START (GPIO 36)</p>
-                <label class="switch">
-                    <input type="checkbox" onchange="toggleCheckbox(this)" id="36">
-                    <span class="slider"></span>
-                </label>
-                <p class="state">State: <span id="36s"></span></p>
-            </div>
+            <div class="relay-controls">
+                <div class="relay-card">
+                    <p class="control-title"><i class="fas fa-gas-pump"></i> Бензоклапан (GPIO 35)</p>
+                    <div class="control-state">
+                        <span>Состояние:</span>
+                        <span id="35s" class="state-value">--</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" onchange="toggleCheckbox(this)" id="35">
+                        <span class="slider"></span>
+                    </label>
+                </div>
 
-            <div class="card">
-                <p class="card-title"><i class="fas fa-lightbulb"></i>Кнопка START (GPIO 37)</p>
-                <label class="switch">
-                    <input type="checkbox" onchange="toggleCheckbox(this)" id="37">
-                    <span class="slider"></span>
-                </label>
-                <p class="state">State: <span id="37s"></span></p>
-            </div>
+                <div class="relay-card">
+                    <p class="control-title"><i class="fas fa-play"></i> Реле START (GPIO 36)</p>
+                    <div class="control-state">
+                        <span>Состояние:</span>
+                        <span id="36s" class="state-value">--</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" onchange="toggleCheckbox(this)" id="36">
+                        <span class="slider"></span>
+                    </label>
+                </div>
 
-            <div class="card">
-                <p class="card-title"><i class="fas fa-lightbulb"></i>Запас (GPIO 38)</p>
-                <label class="switch">
-                    <input type="checkbox" onchange="toggleCheckbox(this)" id="38">
-                    <span class="slider"></span>
-                </label>
-                <p class="state">State: <span id="38s"></span></p>
-            </div>
-
-        </div>
-    </div>
-
-    <div class="content">
-        <div class="card-grid">
-            <div class="card">
-                <p class="card-title"><i class="fas fa-thermometer-threequarters" style="color:#059e8a;"></i> Температура у контроллера</p>
-                <p class="reading"><span id="temperature1"></span> &deg;C</p>
-            </div>
-            <div class="card">
-                <p class="card-title"> Влажность у контроллера</p>
-                <p class="reading"><span id="humidity1"></span> &percnt;</p>
-            </div>
-            <div class="card">
-                <p class="card-title"> Давление у контроллера</p>
-                <p class="reading"><span id="pressure1"></span> hpa</p>
+                <div class="relay-card">
+                    <p class="control-title"><i class="fas fa-toggle-on"></i> Кнопка START (GPIO 37)</p>
+                    <div class="control-state">
+                        <span>Состояние:</span>
+                        <span id="37s" class="state-value">--</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" onchange="toggleCheckbox(this)" id="37">
+                        <span class="slider"></span>
+                    </label>
+                </div>
             </div>
         </div>
     </div>
-
-    <div class="content">
-        <div class="card-grid">
-            <div class="card">
-                <p class="card-title"><i class="fas fa-thermometer-threequarters" style="color:#059e8a;"></i> Температура у генератора</p>
-                <p class="reading"><span id="temperature2"></span> &deg;C</p>
-            </div>
-            <div class="card">
-                <p class="card-title"> Влажность у генератора</p>
-                <p class="reading"><span id="humidity2"></span> &percnt;</p>
-            </div>
-            <div class="card">
-                <p class="card-title"> Давление у генератора</p>
-                <p class="reading"><span id="pressure2"></span> hpa</p>
-            </div>
+    
+    <div class="log-container">
+        <h2><i class="fas fa-clipboard-list"></i> Журнал событий</h2>
+        <div class="log-controls">
+          <button onclick="loadEventLog()" class="refresh-btn">
+            <i class="fas fa-sync-alt"></i> Обновить
+          </button>
+          <!-- Кнопки навигации добавятся автоматически -->
         </div>
-    </div>
-
+        <div id="eventLog" class="event-log"></div>
+      </div>
     <script src="/script.js"></script>
 </body>
 </html>

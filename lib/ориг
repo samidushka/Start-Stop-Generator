@@ -1,0 +1,150 @@
+function protectIP(input, event) {
+    const value = input.value;
+    const cursorPos = input.selectionStart;
+    
+    // Определяем позиции точек
+    const firstDotPos = value.indexOf('.');
+    const secondDotPos = value.indexOf('.', firstDotPos + 1);
+    const thirdDotPos = value.indexOf('.', secondDotPos + 1);
+    
+    // 🔥 ОБРАБОТКА ВВОДА ЦИФР С АВТОПЕРЕНОСОМ (ДОБАВЛЕНО ТОЛЬКО ЭТО)
+    if (event.key.length === 1 && /\d/.test(event.key)) {
+        // Определяем текущий октет
+        const octetPositions = getOctetPositions(value);
+        const currentOctet = getCurrentOctet(cursorPos, octetPositions);
+        
+        // 🔥 АВТОПЕРЕНОС ПРИ ВВОДЕ 3-Й ЦИФРЫ В ТРЕТЬЕМ ОКТЕТЕ
+        if (currentOctet === 2 && thirdDotPos !== -1) {
+            const thirdOctet = value.substring(secondDotPos + 1, thirdDotPos);
+            
+            // Если вводим 3-ю цифру в третьем октете и курсор в конце октета
+            if (thirdOctet.length === 2 && cursorPos === secondDotPos + 1 + 2) {
+                event.preventDefault();
+                
+                // Создаем новое значение с добавленной цифрой
+                const newThirdOctet = thirdOctet + event.key;
+                const newValue = value.substring(0, secondDotPos + 1) + newThirdOctet + value.substring(thirdDotPos);
+                
+                input.value = newValue;
+                
+                // 🔥 ПЕРЕНОСИМ КУРСОР В 4-Й ОКТЕТ (после 3-й точки)
+                input.setSelectionRange(thirdDotPos + 1, thirdDotPos + 1);
+                return;
+            }
+        }
+        
+        // 🔥 ПРОВЕРКА ЛИМИТОВ (СОХРАНЕНА СТАРАЯ ЛОГИКА)
+        if (currentOctet === 2) {
+            const currentOctetText = getCurrentOctetText(value, currentOctet);
+            if (currentOctetText.length >= 3 && cursorPos <= thirdDotPos) {
+                event.preventDefault();
+                return;
+            }
+        }
+        
+        if (currentOctet === 3) {
+            const currentOctetText = getCurrentOctetText(value, currentOctet);
+            if (currentOctetText.length >= 3) {
+                event.preventDefault();
+                return;
+            }
+        }
+    }
+    
+    // 🔥 ВСЯ ОСТАЛЬНАЯ ЛОГИКА ОСТАЕТСЯ БЕЗ ИЗМЕНЕНИЙ
+    // Backspace, Delete, стрелки и блокировка не-цифр
+    
+    // 🔥 ОБРАБОТКА BACKSPACE (БЕЗ ИЗМЕНЕНИЙ)
+    if (event.key === 'Backspace') {
+        // Блокируем удаление защищенных точек (между 10.160)
+        if (cursorPos === firstDotPos + 1 || cursorPos === secondDotPos + 1) {
+            event.preventDefault();
+            return;
+        }
+        
+        // 🔥 УДАЛЕНИЕ ПОСЛЕДНЕЙ ЦИФРЫ 4-ГО ОКТЕТА - ПЕРЕНОС В 3-Й ОКТЕТ
+        if (cursorPos === value.length && thirdDotPos !== -1) {
+            const fourthOctet = value.substring(thirdDotPos + 1);
+            if (fourthOctet.length === 1) {
+                // "10.160.111.1|" → Backspace → "10.160.111|."
+                event.preventDefault();
+                const newValue = value.substring(0, value.length - 1);
+                input.value = newValue;
+                input.setSelectionRange(thirdDotPos, thirdDotPos);
+                return;
+            }
+        }
+        
+        // 🔥 УДАЛЕНИЕ В ТРЕТЬЕМ ОКТЕТЕ С СОХРАНЕНИЕМ ТОЧКИ
+        if (cursorPos === thirdDotPos) {
+            // "10.160.111.|" → Backspace → "10.160.11|."
+            event.preventDefault();
+            const thirdOctet = value.substring(secondDotPos + 1, thirdDotPos);
+            if (thirdOctet.length > 0) {
+                const newThirdOctet = thirdOctet.slice(0, -1);
+                const newValue = value.substring(0, secondDotPos + 1) + newThirdOctet + value.substring(thirdDotPos);
+                input.value = newValue;
+                const newCursorPos = secondDotPos + 1 + newThirdOctet.length;
+                input.setSelectionRange(newCursorPos, newCursorPos);
+            }
+            return;
+        }
+        
+        // 🔥 УДАЛЕНИЕ ЦИФР ПЕРЕД ТОЧКОЙ В ТРЕТЬЕМ ОКТЕТЕ
+        if (cursorPos > secondDotPos + 1 && cursorPos < thirdDotPos) {
+            const thirdOctet = value.substring(secondDotPos + 1, thirdDotPos);
+            const digitIndex = cursorPos - (secondDotPos + 1);
+            
+            if (digitIndex === thirdOctet.length && thirdOctet.length > 0) {
+                // "10.160.11|." → Backspace → "10.160.1|."
+                event.preventDefault();
+                const newThirdOctet = thirdOctet.slice(0, -1);
+                const newValue = value.substring(0, secondDotPos + 1) + newThirdOctet + value.substring(thirdDotPos);
+                input.value = newValue;
+                const newCursorPos = secondDotPos + 1 + newThirdOctet.length;
+                input.setSelectionRange(newCursorPos, newCursorPos);
+                return;
+            }
+        }
+        
+        // 🔥 УДАЛЕНИЕ ПОСЛЕДНЕЙ ЦИФРЫ ТРЕТЬЕГО ОКТЕТА (ПЕРЕД ТОЧКОЙ)
+        if (cursorPos === thirdDotPos && thirdDotPos !== -1) {
+            const thirdOctet = value.substring(secondDotPos + 1, thirdDotPos);
+            if (thirdOctet.length > 0) {
+                // "10.160.1|." → Backspace → "10.160.|" (точка НЕ удаляется)
+                event.preventDefault();
+                const newThirdOctet = thirdOctet.slice(0, -1);
+                const newValue = value.substring(0, secondDotPos + 1) + newThirdOctet + value.substring(thirdDotPos);
+                input.value = newValue;
+                const newCursorPos = secondDotPos + 1 + newThirdOctet.length;
+                input.setSelectionRange(newCursorPos, newCursorPos);
+                return;
+            }
+        }
+        
+        // 🔥 БЛОКИРОВКА УДАЛЕНИЯ ПЕРЕД ЗАЩИЩЕННЫМИ ТОЧКАМИ
+        if (cursorPos === firstDotPos || cursorPos === secondDotPos) {
+            event.preventDefault();
+            return;
+        }
+    }
+    
+    // 🔥 ОБРАБОТКА DELETE (БЕЗ ИЗМЕНЕНИЙ)
+    if (event.key === 'Delete') {
+        if (cursorPos === firstDotPos || cursorPos === secondDotPos) {
+            event.preventDefault();
+            return;
+        }
+    }
+    
+    // 🔥 ОБРАБОТКА СТРЕЛОК (БЕЗ ИЗМЕНЕНИЙ)
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        return;
+    }
+    
+    // 🔥 БЛОКИРОВКА НЕ-ЦИФР (БЕЗ ИЗМЕНЕНИЙ)
+    if (event.key.length === 1 && !/\d/.test(event.key)) {
+        event.preventDefault();
+        return;
+    }
+}
